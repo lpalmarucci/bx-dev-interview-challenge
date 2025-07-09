@@ -3,6 +3,7 @@ import {ChangeEvent, FormEvent, useCallback, useMemo, useRef, useState} from "re
 import {FileService} from "../services/file.service.ts";
 import type {ApiResultStatus} from "../types/generic.ts";
 import {UploadFileResponseDto} from "../types/file.ts";
+import {MAX_FILE_SIZE} from "../utils/constants.ts";
 
 const UploadFileForm = () => {
   const inputRef = useRef<HTMLInputElement>(null);
@@ -10,7 +11,7 @@ const UploadFileForm = () => {
   const fileService = useMemo(() => new FileService(), []);
   const [uploadedFile, setUploadedFile] = useState<UploadFileResponseDto>()
   const [isUploadingFile, setIsUploadingFile] = useState<boolean>(false);
-  const [uploadResult, setUploadResult] = useState<ApiResultStatus>()
+  const [uploadResult, setUploadResult] = useState<{ status: ApiResultStatus, message: string }>()
   const [openSnackbar, setOpenSnackbar] = useState<boolean>(false)
 
 
@@ -24,6 +25,12 @@ const UploadFileForm = () => {
     if (selectedFile) return;
     const files = event.target.files;
     if (!files || files.length === 0) return;
+    const file = files[0];
+    if(file.size >= MAX_FILE_SIZE) {
+      setOpenSnackbar(true);
+      setUploadResult({status: 'error', message: 'Il file è troppo grande'});
+      return;
+    }
     setSelectedFile(files[0]);
   };
 
@@ -33,11 +40,14 @@ const UploadFileForm = () => {
     try {
       setIsUploadingFile(true);
       const res = await fileService.uploadFile(selectedFile)
-      setUploadedFile(res)
-      setUploadResult('success')
+      setUploadResult({status: 'success', message: 'File caricato con successo'})
       setSelectedFile(undefined)
-    } catch {
-      setUploadResult('error')
+      setUploadedFile(res)
+    } catch (e: unknown) {
+      let errorMessage = 'Generic error';
+      if(e instanceof Error)
+        errorMessage = e.message;
+      setUploadResult({status: 'error', message: errorMessage})
     } finally {
       setOpenSnackbar(true)
       setIsUploadingFile(false)
@@ -49,27 +59,21 @@ const UploadFileForm = () => {
     setOpenSnackbar(false)
   }
 
-  const handleDownloadFile = async () => {
-    if (!uploadedFile) return;
-    await fileService.downloadFile(uploadedFile.url, uploadedFile.name)
-  }
-
   const renderAlert = useCallback(() => {
     if (!uploadResult) return;
-    if (uploadResult === 'success') {
+    if (uploadResult.status === 'success') {
       return (<Alert
         onClose={handleCloseSnackbar}
         severity="success"
         variant="filled"
         sx={{width: '100%'}}
-        closeText='Chiudi'
         action={
-          <Button color="inherit" size="small" onClick={handleDownloadFile}>
-            Scarica
-          </Button>
+        <Button size='small' onClick={handleDownloadFile} color='inherit'>
+          Scarica
+        </Button>
         }
       >
-        File caricato con successo
+        {uploadResult.message}
       </Alert>)
     }
     return (
@@ -80,10 +84,15 @@ const UploadFileForm = () => {
         sx={{width: '100%'}}
         closeText='Chiudi'
       >
-        Errore durante il caricamento del file
+        {uploadResult.message}
       </Alert>
     )
   }, [uploadResult])
+
+  const handleDownloadFile = async () => {
+    if (!uploadedFile) return;
+    await fileService.downloadFile(uploadedFile.url, uploadedFile.name)
+  }
 
   return (
     <>
@@ -122,8 +131,11 @@ const UploadFileForm = () => {
                 <Typography variant="h6">
                   Trascina qui un file
                 </Typography>
-                <Typography variant="body2" color="text.secondary">
+                <Typography variant="body1" color="text.secondary">
                   Oppure clicca per selezionare
+                </Typography>
+                <Typography variant="body2" fontSize={12}>
+                  (File consentiti: .png, .jpeg, .jpg. Dimensione massima: 1mb)
                 </Typography>
                 <input
                   id="fileInput"
@@ -131,6 +143,7 @@ const UploadFileForm = () => {
                   hidden
                   ref={inputRef}
                   onChange={handleFileSelect}
+                  accept='image/png, image/jpeg'
                 />
               </Stack>
           }
