@@ -1,5 +1,6 @@
 import {
   Controller,
+  ParseFilePipeBuilder,
   Post,
   UploadedFile,
   UseInterceptors,
@@ -15,7 +16,15 @@ export class FileController {
 
   @Post('upload')
   @UseInterceptors(FileInterceptor('file'))
-  async uploadFile(@UploadedFile() file: Express.Multer.File) {
+  async uploadFile(
+    @UploadedFile(
+      new ParseFilePipeBuilder()
+        .addMaxSizeValidator({ maxSize: 1024 * 100 })
+        .addFileTypeValidator({ fileType: '.(png|jpeg|jpg)' })
+        .build(),
+    )
+    file: Express.Multer.File,
+  ) {
     const fileEntity = await this.fileService.uploadFile(file);
     return Mapper.mapData(FileDto, fileEntity);
   }
