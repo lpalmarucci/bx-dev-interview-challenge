@@ -3,6 +3,7 @@ import {ChangeEvent, FormEvent, useCallback, useMemo, useRef, useState} from "re
 import {FileService} from "../services/file.service.ts";
 import type {ApiResultStatus} from "../types/generic.ts";
 import {UploadFileResponseDto} from "../types/file.ts";
+import {MAX_FILE_SIZE} from "../utils/constants.ts";
 
 const UploadFileForm = () => {
   const inputRef = useRef<HTMLInputElement>(null);
@@ -24,6 +25,12 @@ const UploadFileForm = () => {
     if (selectedFile) return;
     const files = event.target.files;
     if (!files || files.length === 0) return;
+    const file = files[0];
+    if(file.size >= MAX_FILE_SIZE) {
+      setOpenSnackbar(true);
+      setUploadResult({status: 'error', message: 'Il file è troppo grande'});
+      return;
+    }
     setSelectedFile(files[0]);
   };
 
@@ -32,9 +39,10 @@ const UploadFileForm = () => {
     if (!selectedFile) return;
     try {
       setIsUploadingFile(true);
-      await fileService.uploadFile(selectedFile)
+      const res = await fileService.uploadFile(selectedFile)
       setUploadResult({status: 'success', message: 'File caricato con successo'})
       setSelectedFile(undefined)
+      setUploadedFile(res)
     } catch (e: unknown) {
       let errorMessage = 'Generic error';
       if(e instanceof Error)
@@ -59,6 +67,11 @@ const UploadFileForm = () => {
         severity="success"
         variant="filled"
         sx={{width: '100%'}}
+        action={
+        <Button size='small' onClick={handleDownloadFile} color='inherit'>
+          Scarica
+        </Button>
+        }
       >
         {uploadResult.message}
       </Alert>)
@@ -118,8 +131,11 @@ const UploadFileForm = () => {
                 <Typography variant="h6">
                   Trascina qui un file
                 </Typography>
-                <Typography variant="body2" color="text.secondary">
+                <Typography variant="body1" color="text.secondary">
                   Oppure clicca per selezionare
+                </Typography>
+                <Typography variant="body2" fontSize={12}>
+                  (File consentiti: .png, .jpeg, .jpg. Dimensione massima: 1mb)
                 </Typography>
                 <input
                   id="fileInput"
@@ -127,6 +143,7 @@ const UploadFileForm = () => {
                   hidden
                   ref={inputRef}
                   onChange={handleFileSelect}
+                  accept='image/png, image/jpeg'
                 />
               </Stack>
           }

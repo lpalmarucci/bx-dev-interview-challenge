@@ -19,7 +19,7 @@ export class FileController {
   async uploadFile(
     @UploadedFile(
       new ParseFilePipeBuilder()
-        .addMaxSizeValidator({ maxSize: 1024 * 100 })
+        .addMaxSizeValidator({ maxSize: 1024 * 1024 })
         .addFileTypeValidator({ fileType: '.(png|jpeg|jpg)' })
         .build(),
     )
