@@ -4,7 +4,7 @@ import "@fontsource/roboto/500.css";
 import "@fontsource/roboto/700.css";
 import {CssBaseline, StyledEngineProvider, ThemeProvider,} from "@mui/material";
 import theme from "./theme";
-import {browserRouter} from "./routes/constants.ts";
+import {browserRouter} from "./routes/constants.tsx";
 import {RouterProvider} from "react-router";
 import {AuthProvider} from "./contexts/auth.context.tsx";
 

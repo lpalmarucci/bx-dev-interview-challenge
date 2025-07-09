@@ -16,18 +16,10 @@ import UploadFileForm from "../components/UploadFileForm.tsx";
 import {AppRoutes} from "../routes/types.ts";
 import {useNavigate} from "react-router";
 import {useAuthContext} from "../contexts/auth.context.tsx";
-import {useEffect} from "react";
 
 const Homepage = () => {
-  const {isAuthenticated, setToken} = useAuthContext()
+  const {setToken} = useAuthContext()
   const navigate = useNavigate();
-
-  useEffect(() => {
-    if (!isAuthenticated) {
-      navigate(AppRoutes.Login);
-      return;
-    }
-  }, [])
 
   return (
     <Box>
