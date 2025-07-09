@@ -12,6 +12,7 @@ import {
   Container,
   CssBaseline,
   Paper,
+  Stack,
   StyledEngineProvider,
   ThemeProvider,
   Toolbar,
@@ -19,8 +20,9 @@ import {
 } from "@mui/material";
 import Grid from "@mui/material/Grid";
 import theme from "./theme";
-import { useMemo } from "react";
-import { ExampleService } from "./services/example.service";
+import {useMemo} from "react";
+import {ExampleService} from "./services/example.service";
+import UploadFileForm from "./components/UploadFileForm.tsx";
 
 function App() {
   const exampleService = useMemo(function initExampleService() {
@@ -58,20 +60,10 @@ function App() {
               <Grid size={{ xs: 12, md: 6 }}>
                 <Card>
                   <CardContent>
-                    <Typography variant="h5" component="div">
-                      Funzionalità 1
-                    </Typography>
-                    <Typography sx={{ mb: 1.5 }} color="text.secondary">
-                      Descrizione della prima funzionalità
-                    </Typography>
-                    <Typography variant="body2">
-                      Qui puoi aggiungere la tua prima funzionalità. Material-UI
-                      è ora configurato e funzionante.
-                    </Typography>
+                    <Stack gap={{xs: '1rem'}}>
+                      <UploadFileForm />
+                    </Stack>
                   </CardContent>
-                  <CardActions>
-                    <Button size="small">Scopri di più</Button>
-                  </CardActions>
                 </Card>
               </Grid>
 
