@@ -2,6 +2,7 @@ import {
   Inject,
   Injectable,
   InternalServerErrorException,
+  Logger,
 } from '@nestjs/common';
 import {
   GetObjectCommand,
@@ -18,6 +19,8 @@ import { FileEntity } from '@/entities/file.entity';
 export class AwsService implements IAwsService {
   private readonly _bucketName: string;
   private readonly _s3Client: S3Client;
+  private readonly logger = new Logger(AwsService.name);
+
   constructor(@Inject(ConfigService) private configService: ConfigService) {
     const awsConfig = this.configService.get<GlobalConfig['aws']>('aws');
     if (!awsConfig) throw new Error('AWS config missing');
@@ -27,6 +30,7 @@ export class AwsService implements IAwsService {
 
   async uploadFile(file: Express.Multer.File): Promise<FileEntity> {
     try {
+      this.logger.log(`Requesting upload for file ${file.originalname}...`);
       const bucketName = this.configService.get<string>('aws.bucketName');
       const command = new PutObjectCommand({
         Bucket: bucketName,
@@ -41,9 +45,15 @@ export class AwsService implements IAwsService {
 
       await this._s3Client.send(command);
 
+      this.logger.log(`File ${file.originalname} uploaded successfully`);
       const presignedUrl = await this._getPresignedSignedUrl(file.originalname);
       return new FileEntity(presignedUrl, file.originalname);
     } catch (error) {
+      let errorMessage = 'Generic error while uploading file';
+      if (error instanceof Error) errorMessage = error.message;
+      this.logger.log(
+        `Error while uploading ${file.originalname}: ${errorMessage}`,
+      );
       throw new InternalServerErrorException(error);
     }
   }
