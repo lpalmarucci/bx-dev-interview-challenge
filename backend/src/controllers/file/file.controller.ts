@@ -1,0 +1,22 @@
+import {
+  Controller,
+  Post,
+  UploadedFile,
+  UseInterceptors,
+} from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { FileService } from '@/services/file/file.service';
+import { UploadFileDto } from '@/dtos/file/upload-file.dto';
+import { Mapper } from '@/utils/mapper/mapper';
+
+@Controller('file')
+export class FileController {
+  constructor(private readonly fileService: FileService) {}
+
+  @Post('upload')
+  @UseInterceptors(FileInterceptor('file'))
+  async uploadFile(@UploadedFile() file: Express.Multer.File) {
+    const fileEntity = await this.fileService.uploadFile(file);
+    return Mapper.mapData(UploadFileDto, fileEntity);
+  }
+}
