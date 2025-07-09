@@ -10,7 +10,7 @@ const UploadFileForm = () => {
   const fileService = useMemo(() => new FileService(), []);
   const [uploadedFile, setUploadedFile] = useState<UploadFileResponseDto>()
   const [isUploadingFile, setIsUploadingFile] = useState<boolean>(false);
-  const [uploadResult, setUploadResult] = useState<ApiResultStatus>()
+  const [uploadResult, setUploadResult] = useState<{ status: ApiResultStatus, message: string }>()
   const [openSnackbar, setOpenSnackbar] = useState<boolean>(false)
 
 
@@ -32,12 +32,14 @@ const UploadFileForm = () => {
     if (!selectedFile) return;
     try {
       setIsUploadingFile(true);
-      const res = await fileService.uploadFile(selectedFile)
-      setUploadedFile(res)
-      setUploadResult('success')
+      await fileService.uploadFile(selectedFile)
+      setUploadResult({status: 'success', message: 'File caricato con successo'})
       setSelectedFile(undefined)
-    } catch {
-      setUploadResult('error')
+    } catch (e: unknown) {
+      let errorMessage = 'Generic error';
+      if(e instanceof Error)
+        errorMessage = e.message;
+      setUploadResult({status: 'error', message: errorMessage})
     } finally {
       setOpenSnackbar(true)
       setIsUploadingFile(false)
@@ -49,27 +51,16 @@ const UploadFileForm = () => {
     setOpenSnackbar(false)
   }
 
-  const handleDownloadFile = async () => {
-    if (!uploadedFile) return;
-    await fileService.downloadFile(uploadedFile.url, uploadedFile.name)
-  }
-
   const renderAlert = useCallback(() => {
     if (!uploadResult) return;
-    if (uploadResult === 'success') {
+    if (uploadResult.status === 'success') {
       return (<Alert
         onClose={handleCloseSnackbar}
         severity="success"
         variant="filled"
         sx={{width: '100%'}}
-        closeText='Chiudi'
-        action={
-          <Button color="inherit" size="small" onClick={handleDownloadFile}>
-            Scarica
-          </Button>
-        }
       >
-        File caricato con successo
+        {uploadResult.message}
       </Alert>)
     }
     return (
@@ -80,10 +71,15 @@ const UploadFileForm = () => {
         sx={{width: '100%'}}
         closeText='Chiudi'
       >
-        Errore durante il caricamento del file
+        {uploadResult.message}
       </Alert>
     )
   }, [uploadResult])
+
+  const handleDownloadFile = async () => {
+    if (!uploadedFile) return;
+    await fileService.downloadFile(uploadedFile.url, uploadedFile.name)
+  }
 
   return (
     <>

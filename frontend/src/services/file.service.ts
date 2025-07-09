@@ -6,12 +6,20 @@ export class FileService extends HttpService{
     try {
       const formdata = new FormData();
       formdata.set('file', file);
-      return this.httpClient('/api/file/upload', {
+      const res = await this.httpClient('/api/file/upload', {
         method: "POST",
         body: formdata,
       }).then(res => res.json());
-    } catch {
-      throw new Error('Error while uploading file');
+      if(res.statusCode === 400) {
+        throw new Error(res.message);
+      }
+      return res;
+    } catch (e) {
+      let errorMessage = "Error while uploading file";
+      if (e instanceof Error) {
+        errorMessage = e.message;
+      }
+      throw new Error(errorMessage);
     }
   }
 
