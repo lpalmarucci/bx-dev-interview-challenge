@@ -7,10 +7,14 @@ import { AwsService } from '@/services/aws/aws.service';
 import { FileController } from '@/controllers/file/file.controller';
 import { FileService } from './services/file/file.service';
 import { AuthModule } from './modules/auth/auth.module';
+import { UsersService } from './services/users/users.service';
 
 @Module({
-  imports: [ConfigModule.forRoot({ isGlobal: true, load: [getCommonConfig] }), AuthModule],
+  imports: [
+    ConfigModule.forRoot({ isGlobal: true, load: [getCommonConfig] }),
+    AuthModule,
+  ],
   controllers: [AppController, FileController],
-  providers: [AppService, AwsService, FileService],
+  providers: [AppService, AwsService, FileService, UsersService],
 })
 export class AppModule {}
