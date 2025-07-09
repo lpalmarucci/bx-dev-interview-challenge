@@ -31,7 +31,7 @@ export class AwsService implements IAwsService {
       const bucketName = this.configService.get<string>('aws.bucketName');
       const command = new PutObjectCommand({
         Bucket: bucketName,
-        Key: key,
+        Key: file.originalname,
         Body: file.buffer,
         ContentType: file.mimetype,
         ACL: 'private',
@@ -44,7 +44,7 @@ export class AwsService implements IAwsService {
 
       const presignedUrl = await this._getPresignedSignedUrl(key);
 
-      return new UploadFileEntity(presignedUrl, key);
+      return new UploadFileEntity(presignedUrl);
     } catch (error) {
       throw new InternalServerErrorException(error);
     }
