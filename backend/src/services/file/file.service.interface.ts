@@ -1,5 +1,5 @@
-import { UploadFileEntity } from '@/entities/file/upload-file.entity';
+import { FileEntity } from '@/entities/file.entity';
 
 export interface IFileService {
-  uploadFile(file: Express.Multer.File): Promise<UploadFileEntity>;
+  uploadFile(file: Express.Multer.File): Promise<FileEntity>;
 }

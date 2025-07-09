@@ -1,25 +1,27 @@
 import {Alert, Button, Snackbar, Stack, Typography} from "@mui/material";
-import {ChangeEvent, FormEvent, useMemo, useRef, useState} from "react";
+import {ChangeEvent, FormEvent, useCallback, useMemo, useRef, useState} from "react";
 import {FileService} from "../services/file.service.ts";
 import type {ApiResultStatus} from "../types/generic.ts";
+import {UploadFileResponseDto} from "../types/file.ts";
 
 const UploadFileForm = () => {
   const inputRef = useRef<HTMLInputElement>(null);
   const [selectedFile, setSelectedFile] = useState<File | undefined>()
   const fileService = useMemo(() => new FileService(), []);
+  const [uploadedFile, setUploadedFile] = useState<UploadFileResponseDto>()
   const [isUploadingFile, setIsUploadingFile] = useState<boolean>(false);
   const [uploadResult, setUploadResult] = useState<ApiResultStatus>()
   const [openSnackbar, setOpenSnackbar] = useState<boolean>(false)
 
 
   const handleDrop = (files?: FileList) => {
-    if(selectedFile) return;
+    if (selectedFile) return;
     if (!files || files.length === 0) return;
     setSelectedFile(files[0]);
   };
 
   const handleFileSelect = (event: ChangeEvent<HTMLInputElement>) => {
-    if(selectedFile) return;
+    if (selectedFile) return;
     const files = event.target.files;
     if (!files || files.length === 0) return;
     setSelectedFile(files[0]);
@@ -30,14 +32,14 @@ const UploadFileForm = () => {
     if (!selectedFile) return;
     try {
       setIsUploadingFile(true);
-      await fileService.uploadFile(selectedFile)
-      setOpenSnackbar(true)
+      const res = await fileService.uploadFile(selectedFile)
+      setUploadedFile(res)
       setUploadResult('success')
       setSelectedFile(undefined)
     } catch {
-      setOpenSnackbar(true)
       setUploadResult('error')
     } finally {
+      setOpenSnackbar(true)
       setIsUploadingFile(false)
     }
   }
@@ -46,6 +48,42 @@ const UploadFileForm = () => {
     setUploadResult(undefined)
     setOpenSnackbar(false)
   }
+
+  const handleDownloadFile = async () => {
+    if (!uploadedFile) return;
+    await fileService.downloadFile(uploadedFile.url, uploadedFile.name)
+  }
+
+  const renderAlert = useCallback(() => {
+    if (!uploadResult) return;
+    if (uploadResult === 'success') {
+      return (<Alert
+        onClose={handleCloseSnackbar}
+        severity="success"
+        variant="filled"
+        sx={{width: '100%'}}
+        closeText='Chiudi'
+        action={
+          <Button color="inherit" size="small" onClick={handleDownloadFile}>
+            Scarica
+          </Button>
+        }
+      >
+        File caricato con successo
+      </Alert>)
+    }
+    return (
+      <Alert
+        onClose={handleCloseSnackbar}
+        severity="error"
+        variant="filled"
+        sx={{width: '100%'}}
+        closeText='Chiudi'
+      >
+        Errore durante il caricamento del file
+      </Alert>
+    )
+  }, [uploadResult])
 
   return (
     <>
@@ -97,7 +135,7 @@ const UploadFileForm = () => {
               </Stack>
           }
         </Stack>
-        <Button variant='contained' fullWidth type='submit' loading={isUploadingFile}>
+        <Button variant='contained' fullWidth type='submit' loading={isUploadingFile} disabled={!selectedFile}>
           Carica
         </Button>
       </form>
@@ -105,28 +143,9 @@ const UploadFileForm = () => {
         open={openSnackbar}
         autoHideDuration={2000}
         onClose={handleCloseSnackbar}
-        message="Note archived"
         anchorOrigin={{vertical: 'bottom', horizontal: 'right'}}
       >
-        {
-          uploadResult === 'success' ?
-            <Alert
-              onClose={handleCloseSnackbar}
-              severity="success"
-              variant="filled"
-              sx={{width: '100%'}}
-            >
-              File caricato con successo
-            </Alert> :
-            <Alert
-              onClose={handleCloseSnackbar}
-              severity="error"
-              variant="filled"
-              sx={{width: '100%'}}
-            >
-              Errore durante il caricamento del file
-            </Alert>
-        }
+        {renderAlert()}
       </Snackbar>
     </>
   )

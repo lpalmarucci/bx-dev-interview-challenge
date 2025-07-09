@@ -14,4 +14,22 @@ export class FileService extends HttpService{
       throw new Error('Error while uploading file');
     }
   }
+
+  async downloadFile(url: string, name: string): Promise<void>{
+    try {
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute(
+          'download',
+          name,
+      );
+      document.body.appendChild(link);
+
+      link.click();
+      document.body.removeChild(link);
+    } catch {
+      throw new Error('Error while downloading file');
+    }
+
+  }
 }
