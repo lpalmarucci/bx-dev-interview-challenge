@@ -12,7 +12,7 @@ import { ConfigService } from '@nestjs/config';
 import type { GlobalConfig } from '@/configs/types';
 import type { IAwsService } from '@/services/aws/aws.service.interface';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
-import { UploadFileEntity } from '@/entities/file/upload-file.entity';
+import { FileEntity } from '@/entities/file.entity';
 
 @Injectable()
 export class AwsService implements IAwsService {
@@ -25,9 +25,8 @@ export class AwsService implements IAwsService {
     this._s3Client = new S3Client({ region: awsConfig.region });
   }
 
-  async uploadFile(file: Express.Multer.File): Promise<UploadFileEntity> {
+  async uploadFile(file: Express.Multer.File): Promise<FileEntity> {
     try {
-      const key = crypto.randomUUID();
       const bucketName = this.configService.get<string>('aws.bucketName');
       const command = new PutObjectCommand({
         Bucket: bucketName,
@@ -42,9 +41,8 @@ export class AwsService implements IAwsService {
 
       await this._s3Client.send(command);
 
-      const presignedUrl = await this._getPresignedSignedUrl(key);
-
-      return new UploadFileEntity(presignedUrl);
+      const presignedUrl = await this._getPresignedSignedUrl(file.originalname);
+      return new FileEntity(presignedUrl, file.originalname);
     } catch (error) {
       throw new InternalServerErrorException(error);
     }
@@ -55,6 +53,7 @@ export class AwsService implements IAwsService {
       const command = new GetObjectCommand({
         Bucket: this._bucketName,
         Key: key,
+        ResponseContentDisposition: `attachment; filename="${key}"`,
       });
 
       return getSignedUrl(this._s3Client, command, {
