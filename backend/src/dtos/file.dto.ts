@@ -1,3 +1,5 @@
+import { Expose } from 'class-transformer';
+
 export interface IFileDto {
   url: string;
   name: string;
@@ -6,12 +8,16 @@ export interface IFileDto {
 }
 
 export class FileDto implements IFileDto {
+  @Expose()
   url: string;
 
+  @Expose()
   name: string;
 
+  @Expose()
   size: number;
 
+  @Expose()
   lastModified: Date;
 
   constructor(

@@ -1,15 +1,19 @@
 import {Alert, Button, Snackbar, Stack, Typography} from "@mui/material";
 import {ChangeEvent, FormEvent, useCallback, useMemo, useRef, useState} from "react";
 import {FileService} from "../services/file.service.ts";
-import type {ApiResultStatus} from "../types/generic.ts";
-import {UploadFileResponseDto} from "../types/file.ts";
-import {MAX_FILE_SIZE} from "../utils/constants.ts";
+import type {ApiResultStatus} from "../types/generic.types.ts";
+import {FileResponseDto} from "../types/file.types.ts";
+import {MAX_FILE_SIZE} from "../utils/constants.utils.ts";
 
-const UploadFileForm = () => {
+interface UploadFileFormProps {
+  onUploadedFile: (file: FileResponseDto) => void;
+}
+
+const UploadFileForm = ({onUploadedFile}: UploadFileFormProps) => {
   const inputRef = useRef<HTMLInputElement>(null);
   const [selectedFile, setSelectedFile] = useState<File | undefined>()
   const fileService = useMemo(() => new FileService(), []);
-  const [uploadedFile, setUploadedFile] = useState<UploadFileResponseDto>()
+  const [uploadedFile, setUploadedFile] = useState<FileResponseDto>()
   const [isUploadingFile, setIsUploadingFile] = useState<boolean>(false);
   const [uploadResult, setUploadResult] = useState<{ status: ApiResultStatus, message: string }>()
   const [openSnackbar, setOpenSnackbar] = useState<boolean>(false)
@@ -43,6 +47,7 @@ const UploadFileForm = () => {
       setUploadResult({status: 'success', message: 'File caricato con successo'})
       setSelectedFile(undefined)
       setUploadedFile(res)
+      onUploadedFile(res);
     } catch (e: unknown) {
       let errorMessage = 'Generic error';
       if(e instanceof Error)

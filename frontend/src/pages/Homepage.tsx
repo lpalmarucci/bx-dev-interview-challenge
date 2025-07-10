@@ -3,7 +3,6 @@ import {
   Box,
   Button,
   Card,
-  CardActions,
   CardContent,
   Container,
   Grid,
@@ -16,10 +15,34 @@ import UploadFileForm from "../components/UploadFileForm.tsx";
 import {AppRoutes} from "../routes/types.ts";
 import {useNavigate} from "react-router";
 import {useAuthContext} from "../contexts/auth.context.tsx";
+import FileDataTable from "../components/FileDataTable.tsx";
+import {useCallback, useEffect, useMemo, useState} from "react";
+import {FileResponseDto} from "../types/file.types.ts";
+import {FileService} from "../services/file.service.ts";
 
 const Homepage = () => {
   const {setToken} = useAuthContext()
+  const [uploadedFiles, setUploadedFiles] = useState<FileResponseDto[]>([]);
+  const fileService = useMemo(() => new FileService(), []);
   const navigate = useNavigate();
+
+
+  const fetchData = useCallback(async () => {
+    try {
+      const files = await fileService.getFiles()
+      setUploadedFiles(files);
+    } catch (e){
+      console.error(e);
+    }
+  }, []);
+
+  const handleUploadFileCallback = () => {
+    fetchData();
+  }
+
+  useEffect(() => {
+    handleUploadFileCallback()
+  }, [])
 
   return (
     <Box>
@@ -53,7 +76,7 @@ const Homepage = () => {
             <Card>
               <CardContent>
                 <Stack gap={{xs: '1rem'}}>
-                  <UploadFileForm/>
+                  <UploadFileForm onUploadedFile={handleUploadFileCallback}/>
                 </Stack>
               </CardContent>
             </Card>
@@ -62,28 +85,8 @@ const Homepage = () => {
           <Grid size={{xs: 12, md: 6}}>
             <Card>
               <CardContent>
-                <Typography variant="h5" component="div">
-                  Funzionalità 2
-                </Typography>
-                <Typography sx={{mb: 1.5}} color="text.secondary">
-                  Descrizione della seconda funzionalità
-                </Typography>
-                <Typography variant="body2">
-                  Qui puoi aggiungere la tua seconda funzionalità. Tutti i
-                  componenti Material-UI sono disponibili.
-                </Typography>
+                <FileDataTable files={uploadedFiles} />
               </CardContent>
-              <CardActions>
-                {/*<Button*/}
-                {/*  size="small"*/}
-                {/*  onClick={async () => {*/}
-                {/*    const { message } = await exampleService.getMessage();*/}
-                {/*    alert(message);*/}
-                {/*  }}*/}
-                {/*>*/}
-                {/*  Cliccami per fare una chiamata API*/}
-                {/*</Button>*/}
-              </CardActions>
             </Card>
           </Grid>
 
