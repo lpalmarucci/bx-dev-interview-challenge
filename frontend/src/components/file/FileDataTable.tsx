@@ -1,5 +1,6 @@
 import {
   Button,
+  CircularProgress,
   Stack,
   Table,
   TableBody,
@@ -10,23 +11,31 @@ import {
   Typography
 } from "@mui/material";
 import {useMemo} from "react";
-import {FileService} from "../services/file.service.ts";
-import {FileResponseDto} from "../types/file.types.ts";
-import {formatBytes} from "../utils/file.utils.ts";
+import {FileService} from "../../services/file.service.ts";
+import {FileResponseDto} from "../../types/file.types.ts";
+import {formatBytes} from "../../utils/file.utils.ts";
 
 interface FileDataTableProps {
   files: FileResponseDto[];
+  isLoading: boolean;
 }
 
-const FileDataTable = ({files}: FileDataTableProps) => {
+const FileDataTable = ({files, isLoading}: FileDataTableProps) => {
   const fileService = useMemo(() => new FileService(), []);
 
   const handleDownloadFile = (file: FileResponseDto) => {
     fileService.downloadFile(file.url, file.name)
   }
 
+  if(isLoading){
+    return <Stack alignItems='center' justifyContent='center' padding={4} gap={2}>
+      <CircularProgress />
+      <Typography>Caricamento file in corso...</Typography>
+    </Stack>
+  }
+
   if(files.length === 0 ){
-    return <Stack padding={4} width='100%'>
+    return <Stack padding={4} width='100%' border={1}>
       <Typography align='center' color='textSecondary'>Nessun file caricato</Typography>
     </Stack>
   }

@@ -1,48 +1,12 @@
-import {
-  AppBar,
-  Box,
-  Button,
-  Card,
-  CardContent,
-  Container,
-  Grid,
-  Paper,
-  Stack,
-  Toolbar,
-  Typography
-} from "@mui/material";
-import UploadFileForm from "../components/UploadFileForm.tsx";
+import {AppBar, Box, Button, Container, Grid, Paper, Toolbar, Typography} from "@mui/material";
 import {AppRoutes} from "../routes/types.ts";
 import {useNavigate} from "react-router";
 import {useAuthContext} from "../contexts/auth.context.tsx";
-import FileDataTable from "../components/FileDataTable.tsx";
-import {useCallback, useEffect, useMemo, useState} from "react";
-import {FileResponseDto} from "../types/file.types.ts";
-import {FileService} from "../services/file.service.ts";
+import FileSection from "../components/file/FileSection.tsx";
 
 const Homepage = () => {
   const {setToken} = useAuthContext()
-  const [uploadedFiles, setUploadedFiles] = useState<FileResponseDto[]>([]);
-  const fileService = useMemo(() => new FileService(), []);
   const navigate = useNavigate();
-
-
-  const fetchData = useCallback(async () => {
-    try {
-      const files = await fileService.getFiles()
-      setUploadedFiles(files);
-    } catch (e){
-      console.error(e);
-    }
-  }, []);
-
-  const handleUploadFileCallback = () => {
-    fetchData();
-  }
-
-  useEffect(() => {
-    handleUploadFileCallback()
-  }, [])
 
   return (
     <Box>
@@ -72,23 +36,7 @@ const Homepage = () => {
             </Paper>
           </Grid>
 
-          <Grid size={{xs: 12, md: 6}}>
-            <Card>
-              <CardContent>
-                <Stack gap={{xs: '1rem'}}>
-                  <UploadFileForm onUploadedFile={handleUploadFileCallback}/>
-                </Stack>
-              </CardContent>
-            </Card>
-          </Grid>
-
-          <Grid size={{xs: 12, md: 6}}>
-            <Card>
-              <CardContent>
-                <FileDataTable files={uploadedFiles} />
-              </CardContent>
-            </Card>
-          </Grid>
+          <FileSection />
 
           <Grid size={12}>
             <Paper sx={{p: 2}}>
