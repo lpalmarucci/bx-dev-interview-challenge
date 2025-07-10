@@ -7,7 +7,7 @@ import {
   UseInterceptors,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { FileService } from '@/services/file/file.service';
+import { FileService } from '@/modules/file/file.service';
 import { FileDto } from '@/dtos/file.dto';
 import { Mapper } from '@/utils/mapper/mapper';
 

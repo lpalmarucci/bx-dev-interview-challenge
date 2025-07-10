@@ -14,7 +14,7 @@ import { ConfigService } from '@nestjs/config';
 import type { GlobalConfig } from '@/configs/types';
 import type { IAwsService } from '@/services/aws/aws.service.interface';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
-import { FileEntity } from '@/entities/file.entity';
+import { FileEntity } from '@/modules/file/file.entity';
 
 @Injectable()
 export class AwsService implements IAwsService {

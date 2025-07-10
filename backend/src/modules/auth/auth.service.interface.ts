@@ -1,4 +1,4 @@
-import { UserEntity } from '@/entities/user/user.entity';
+import { UserEntity } from '@/entities/user.entity';
 
 export interface IAuthService {
   validateUser(username: string, pass: string): UserEntity | null;
