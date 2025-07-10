@@ -1,12 +1,16 @@
-import {UploadFileResponseDto} from "../types/file.ts";
+import {FileResponseDto} from "../types/file.types.ts";
 import {HttpService} from "./http.service.ts";
 
 export class FileService extends HttpService{
-  async uploadFile(file: File): Promise<UploadFileResponseDto> {
+  constructor() {
+    super('/api/file');
+  }
+
+  async uploadFile(file: File): Promise<FileResponseDto> {
     try {
       const formdata = new FormData();
       formdata.set('file', file);
-      const res = await this.httpClient('/api/file/upload', {
+      const res = await this.httpClient('/upload', {
         method: "POST",
         body: formdata,
       }).then(res => res.json());
@@ -38,6 +42,13 @@ export class FileService extends HttpService{
     } catch {
       throw new Error('Error while downloading file');
     }
+  }
 
+  async getFiles(): Promise<FileResponseDto[]> {
+    try {
+      return this.httpClient('/list').then(res => res.json());
+    } catch (e) {
+      return Promise.reject(e);
+    }
   }
 }

@@ -1,5 +1,6 @@
 import {
   Controller,
+  Get,
   ParseFilePipeBuilder,
   Post,
   UploadedFile,
@@ -24,8 +25,14 @@ export class FileController {
         .build(),
     )
     file: Express.Multer.File,
-  ) {
+  ): Promise<FileDto> {
     const fileEntity = await this.fileService.uploadFile(file);
     return Mapper.mapData(FileDto, fileEntity);
+  }
+
+  @Get('list')
+  async getUploadedFiles(): Promise<FileDto[]> {
+    const files = await this.fileService.getUploadedFiles();
+    return Mapper.mapArrayData(FileDto, files);
   }
 }

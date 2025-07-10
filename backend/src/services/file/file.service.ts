@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { AwsService } from '@/services/aws/aws.service';
 import type { IFileService } from '@/services/file/file.service.interface';
+import { FileEntity } from '@/entities/file.entity';
 
 @Injectable()
 export class FileService implements IFileService {
@@ -8,5 +9,9 @@ export class FileService implements IFileService {
 
   uploadFile(file: Express.Multer.File) {
     return this.awsService.uploadFile(file);
+  }
+
+  getUploadedFiles(): Promise<FileEntity[]> {
+    return this.awsService.getFilesInBucket();
   }
 }
