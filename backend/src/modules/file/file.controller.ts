@@ -8,7 +8,7 @@ import {
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { FileService } from '@/modules/file/file.service';
-import { FileDto } from '@/dtos/file.dto';
+import { FileDto } from '@/modules/file/dto/file.dto';
 import { Mapper } from '@/utils/mapper/mapper';
 
 @Controller('file')
