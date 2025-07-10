@@ -6,6 +6,7 @@ import {
 } from '@nestjs/common';
 import {
   GetObjectCommand,
+  ListObjectsCommand,
   PutObjectCommand,
   S3Client,
 } from '@aws-sdk/client-s3';
@@ -43,18 +44,46 @@ export class AwsService implements IAwsService {
         },
       });
 
-      await this._s3Client.send(command);
+      const res = await this._s3Client.send(command);
 
       this.logger.log(`File ${file.originalname} uploaded successfully`);
       const presignedUrl = await this._getPresignedSignedUrl(file.originalname);
-      return new FileEntity(presignedUrl, file.originalname);
-    } catch (error) {
-      let errorMessage = 'Generic error while uploading file';
-      if (error instanceof Error) errorMessage = error.message;
-      this.logger.log(
-        `Error while uploading ${file.originalname}: ${errorMessage}`,
-      );
-      throw new InternalServerErrorException(error);
+      return new FileEntity(presignedUrl, file.originalname, res.Size ?? 0);
+    } catch (e) {
+      this.logger.error(`Error while uploading ${file.originalname}: `, e);
+      throw new InternalServerErrorException(e);
+    }
+  }
+
+  async getFilesInBucket(): Promise<FileEntity[]> {
+    try {
+      this.logger.log(`Getting files from aws s3 bucket ${this._bucketName}`);
+      const listObjectCommand = new ListObjectsCommand({
+        Bucket: this._bucketName,
+      });
+
+      const objectResponse = await this._s3Client.send(listObjectCommand);
+
+      if (!objectResponse.Contents) return [];
+
+      const filePromises = objectResponse.Contents.map(async (content) => {
+        const fileName = content.Key;
+        if (!fileName) return;
+
+        const signedUrl = await this._getPresignedSignedUrl(fileName);
+        return new FileEntity(
+          signedUrl,
+          fileName,
+          content.Size ?? 0,
+          content.LastModified,
+        );
+      });
+
+      const promisesResult = await Promise.all(filePromises);
+      return promisesResult.filter((f) => !!f);
+    } catch (e) {
+      this.logger.error('Error while getting files from aws s3 bucket', e);
+      throw new InternalServerErrorException(e);
     }
   }
 
@@ -67,7 +96,7 @@ export class AwsService implements IAwsService {
       });
 
       return getSignedUrl(this._s3Client, command, {
-        expiresIn: 60 * 60 * 24, // 24 hours
+        expiresIn: 60 * 60, // 1 Hour
       });
     } catch (error) {
       throw new InternalServerErrorException(error);
