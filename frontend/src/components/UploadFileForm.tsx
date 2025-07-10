@@ -98,7 +98,12 @@ const UploadFileForm = () => {
     <>
       <form noValidate onSubmit={handleFormSubmit}>
         <Stack
+          onDragOver={e => {
+            e.preventDefault();
+            e.stopPropagation();
+          }}
           onDrop={e => {
+            e.preventDefault();
             e.stopPropagation();
             handleDrop(e.dataTransfer?.files)
           }}
