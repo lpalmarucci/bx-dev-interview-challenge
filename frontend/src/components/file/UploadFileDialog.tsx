@@ -4,7 +4,6 @@ import {
   Dialog,
   DialogActions,
   DialogContent,
-  type DialogProps,
   DialogTitle,
   Snackbar,
   Stack,
@@ -109,8 +108,8 @@ const UploadFileDialog = ({open, onClose}: UploadFileFormProps) => {
     await fileService.downloadFile(uploadedFile.url, uploadedFile.name)
   }
 
-  const handleClose: DialogProps["onClose"] = (event, reason) => {
-    if (reason && reason === 'backdropClick' && isUploadingFile) return;
+  const handleClose = () => {
+    if (isUploadingFile) return;
     onClose(!!uploadedFile)
   }
 
