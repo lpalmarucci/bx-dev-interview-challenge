@@ -7,12 +7,12 @@ export class AuthService extends HttpService {
   }
   async login(email: string, password: string): Promise<LoginResponse> {
     try {
-      return this.httpClient('/login', {method: 'POST',headers: {'Content-Type': 'application/json'}, body: JSON.stringify({email, password})}).then((res) => res.json());
+      const res = await this.httpClient('/login', {method: 'POST',headers: {'Content-Type': 'application/json'}, body: JSON.stringify({email, password})}).then((res) => res.json());
+      if(res.error)
+        return Promise.reject(res);
+      return res;
     } catch (e) {
-      let errorMessage = "Error while signing in";
-      if (e instanceof Error)
-        errorMessage = e.message;
-      throw new Error(errorMessage);
+      return Promise.reject(e);
     }
   }
 }

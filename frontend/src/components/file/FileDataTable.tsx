@@ -34,7 +34,7 @@ const FileDataTable = ({files, isLoading}: FileDataTableProps) => {
     </Stack>
   }
 
-  if(files.length === 0 ){
+  if(files && files.length === 0){
     return <Stack padding={4} width='100%' border={1}>
       <Typography align='center' color='textSecondary'>Nessun file caricato</Typography>
     </Stack>
